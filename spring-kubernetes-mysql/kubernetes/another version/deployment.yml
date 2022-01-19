@@ -1,0 +1,56 @@
+kind: Service
+apiVersion: v1
+metadata:
+  name: restpatient-mysql-k8s
+  labels:
+    name: restpatient-mysql-k8s
+spec:
+  ports:
+    - port: 8080
+      targetPort: 8080
+      protocol: TCP
+  selector:
+    app: restpatient-mysql-k8s
+  type: LoadBalancer
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: restpatient-mysql-k8s
+spec:
+  selector:
+    matchLabels:
+      app: restpatient-mysql-k8s
+  replicas: 3
+  template:
+    metadata:
+      labels:
+        app: restpatient-mysql-k8s
+    spec:
+      containers:
+        - name: restpatient-mysql-k8s
+          image: restpatient-mysql-k8s
+          ports:
+            - containerPort: 8080
+          env:   # Setting Enviornmental Variables
+            - name: DB_HOST   # Setting Database host address from configMap
+              valueFrom:
+                configMapKeyRef:
+                  name: db-config  # name of configMap
+                  key: host
+            - name: DB_NAME  # Setting Database name from configMap
+              valueFrom:
+                configMapKeyRef:
+                  name: db-config
+                  key: name
+            - name: DB_USERNAME  # Setting Database username from Secret
+              valueFrom:
+                secretKeyRef:
+                  name: db-user # Secret Name
+                  key: username
+            - name: DB_PASSWORD # Setting Database password from Secret
+              valueFrom:
+                secretKeyRef:
+                  name: db-user
+                  key: password
