@@ -1,0 +1,8 @@
+version: '2.1'
+services:
+  localstack:
+    container_name: "${LOCALSTACK_DOCKER_NAME-localstack_saimon}"
+    image: localstack/localstack
+    ports:
+      - "4566-4599:4566-4599"
+      - "${PORT_WEB_UI-8060}:${PORT_WEB_UI-8060}"
