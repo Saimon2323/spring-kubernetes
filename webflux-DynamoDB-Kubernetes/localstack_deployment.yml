@@ -1,0 +1,50 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: localstack
+spec:
+  selector:
+    matchLabels:
+      app: localstack
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: localstack
+    spec:
+      containers:
+        - name: localstack
+          image: localstack/localstack:0.8.6
+          ports:
+            - containerPort: 31001
+            - containerPort: 32000
+          env:
+            # with the SERVICES environment variable, you can tell LocalStack
+            # what services to expose on what port
+            - name: SERVICES
+              value: "dynamodb:31001"
+            - name: PORT_WEB_UI
+              value: "32000"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: localstack
+spec:
+  # selector tells Kubernetes what Deployment this Service
+  # belongs to
+  selector:
+    app: localstack
+  ports:
+    - port: 32000
+      protocol: TCP
+      name: ui
+      nodePort: 32000
+    - port: 31001
+      protocol: TCP
+      name: dynamodb
+      nodePort: 31001
+  type: LoadBalancer
+
+
+# https://gist.github.com/ruanbekker/d289729abd9f3aaab9090e1bc140bfae
