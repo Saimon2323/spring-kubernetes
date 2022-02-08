@@ -1,0 +1,100 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: localstack
+spec:
+  selector:
+    matchLabels:
+      app: localstack
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: localstack
+    spec:
+      containers:
+        - name: localstack
+          image: localstack/localstack:0.8.6
+          ports:
+            - containerPort: 31001
+#            - containerPort: 31000
+            - containerPort: 32000
+          env:
+            # with the SERVICES environment variable, you can tell LocalStack
+            # what services to expose on what port
+            - name: SERVICES
+              value: "dynamodb:31001"
+            - name: PORT_WEB_UI
+              value: "32000"
+---
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: dynamodb-localstack-ingress
+  namespace: default
+  annotations:
+    kubernetes.io/ingress.class: traefik
+spec:
+  rules:
+    - host: dynamodb.localstack.localdns.xyz
+      http:
+        paths:
+          - backend:
+              serviceName: localstack
+              servicePort: dynamodb
+#---
+##apiVersion: extensions/v1beta1
+##kind: Ingress
+##metadata:
+##  name: sqs-localstack-ingress
+##  namespace: default
+##  annotations:
+##    kubernetes.io/ingress.class: traefik
+##spec:
+##  rules:
+##    - host: sqs.localstack.localdns.xyz
+##      http:
+##        paths:
+##          - backend:
+##              serviceName: localstack
+##              servicePort: sqs
+---
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: ui-localstack-ingress
+  namespace: default
+  annotations:
+    kubernetes.io/ingress.class: traefik
+spec:
+  rules:
+    - host: ui.localstack.localdns.xyz
+      http:
+        paths:
+          - backend:
+              serviceName: localstack
+              servicePort: ui
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: localstack
+spec:
+  # selector tells Kubernetes what Deployment this Service
+  # belongs to
+  selector:
+    app: localstack
+  ports:
+    - port: 32000
+      protocol: TCP
+      name: ui
+      nodePort: 32000
+    - port: 31001
+      protocol: TCP
+      name: dynamodb
+      nodePort: 31001
+#    - port: 31000
+#      protocol: TCP
+#      name: sqs
+#      nodePort: 31000
+  type: LoadBalancer

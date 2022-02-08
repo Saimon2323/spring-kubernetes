@@ -1,0 +1,16 @@
+aws dynamodb --endpoint-url http://localhost:4566 create-table --table-name customer-sync --attribute-definitions AttributeName=customerId,AttributeType=S --key-schema AttributeName=customerId,KeyType=HASH --provisioned-throughput ReadCapacityUnits=5,WriteCapacityUnits=5
+aws dynamodb --endpoint-url http://192.168.49.2:31001 create-table --table-name customer-sync --attribute-definitions AttributeName=customerId,AttributeType=S --key-schema AttributeName=customerId,KeyType=HASH --provisioned-throughput ReadCapacityUnits=5,WriteCapacityUnits=5
+
+aws dynamodb list-tables --endpoint-url http://localhost:4566
+aws dynamodb list-tables --endpoint-url http://192.168.49.2:31001
+
+DYNAMO_ENDPOINT=http://localhost:4566 dynamodb-admin --open
+DYNAMO_ENDPOINT=http://192.168.49.2:31001 dynamodb-admin --open
+
+aws dynamodb scan \
+    --table-name customer-sync \
+    --endpoint-url http://localhost:4566
+
+aws dynamodb scan \
+    --table-name customer-sync \
+    --endpoint-url http://192.168.49.2:31001
